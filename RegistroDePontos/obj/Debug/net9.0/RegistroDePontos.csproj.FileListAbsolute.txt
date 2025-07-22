@@ -1,0 +1,14 @@
+C:\Users\bruno\Documents\RegistroPontos\RegistroDePontos\bin\Debug\net9.0\RegistroDePontos.exe
+C:\Users\bruno\Documents\RegistroPontos\RegistroDePontos\bin\Debug\net9.0\RegistroDePontos.deps.json
+C:\Users\bruno\Documents\RegistroPontos\RegistroDePontos\bin\Debug\net9.0\RegistroDePontos.runtimeconfig.json
+C:\Users\bruno\Documents\RegistroPontos\RegistroDePontos\bin\Debug\net9.0\RegistroDePontos.dll
+C:\Users\bruno\Documents\RegistroPontos\RegistroDePontos\bin\Debug\net9.0\RegistroDePontos.pdb
+C:\Users\bruno\Documents\RegistroPontos\RegistroDePontos\obj\Debug\net9.0\RegistroDePontos.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\bruno\Documents\RegistroPontos\RegistroDePontos\obj\Debug\net9.0\RegistroDePontos.AssemblyInfoInputs.cache
+C:\Users\bruno\Documents\RegistroPontos\RegistroDePontos\obj\Debug\net9.0\RegistroDePontos.AssemblyInfo.cs
+C:\Users\bruno\Documents\RegistroPontos\RegistroDePontos\obj\Debug\net9.0\RegistroDePontos.csproj.CoreCompileInputs.cache
+C:\Users\bruno\Documents\RegistroPontos\RegistroDePontos\obj\Debug\net9.0\RegistroDePontos.dll
+C:\Users\bruno\Documents\RegistroPontos\RegistroDePontos\obj\Debug\net9.0\refint\RegistroDePontos.dll
+C:\Users\bruno\Documents\RegistroPontos\RegistroDePontos\obj\Debug\net9.0\RegistroDePontos.pdb
+C:\Users\bruno\Documents\RegistroPontos\RegistroDePontos\obj\Debug\net9.0\RegistroDePontos.genruntimeconfig.cache
+C:\Users\bruno\Documents\RegistroPontos\RegistroDePontos\obj\Debug\net9.0\ref\RegistroDePontos.dll
