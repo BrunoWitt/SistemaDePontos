@@ -10,7 +10,7 @@ public class Colaborador
     public string Email { get; set; }
     public string Senha { get; set; }
 
-    public string Admin { get; set; } = "false";
+    public bool Admin { get; set; } = false;
 
     public Colaborador(int id, string nome, string email, string senha)
     {
@@ -18,7 +18,7 @@ public class Colaborador
         Nome = nome;
         Email = email;
         Senha = senha;
-        Admin = "false";
+        Admin = false;
     }
 
 }
@@ -28,17 +28,18 @@ public class RegistroPonto
     public int Id { get; set; }
     public int ColaboradorId { get; set; }
     public DateTime DataRegistro { get; set; }
-    public DateTime Entrada { get; set; }
-    public DateTime? InicioIntervalo { get; set; }
-    public DateTime? FimIntervalo { get; set; }
-    public DateTime? Saida { get; set; }
+    public TimeSpan Entrada { get; set; }
+    public TimeSpan? InicioIntervalo { get; set; }
+    public TimeSpan? FimIntervalo { get; set; }
+    public TimeSpan? Saida { get; set; }
 }
+
 
 class Admin : Colaborador
 {
     public Admin(int id, string nome, string email, string senha) : base(id, nome, email, senha)
     {
-        Admin = "true";
+        Admin = true;
     }
 }
 
@@ -50,8 +51,7 @@ public class Program
 {
     static List<Colaborador> colaboradores = new List<Colaborador>
     {
-        new Colaborador(1, "Colaborador 1", "colaborador@gmail.com", "123"),
-        new Colaborador(2, "Colaborador 2", "colaborador@gmail.com", "456"),
+        new Colaborador(1, "Teste", "teste@gmail.com", "123")
     };
     static List<Admin> admins = new List<Admin>
     {
@@ -59,26 +59,29 @@ public class Program
     };
 
     static int ObterStatusAtualDoRegistro(SqlConnection connection, int colaboradorId, DateTime dataRegistro)
-{
-    string query = "SELECT Entrada, InicioIntervalo, FimIntervalo, Saida FROM RegistrosPonto WHERE ID = @ID AND DataRegistro = @DataRegistro";
-    SqlCommand command = new SqlCommand(query, connection);
-    command.Parameters.AddWithValue("@ID", colaboradorId);
-    command.Parameters.AddWithValue("@DataRegistro", dataRegistro);
-
-    SqlDataReader reader = command.ExecuteReader();
-    int status = 0;
-
-    if (reader.Read())
     {
-        if (reader["Entrada"] != DBNull.Value) status++;
-        if (reader["InicioIntervalo"] != DBNull.Value) status++;
-        if (reader["FimIntervalo"] != DBNull.Value) status++;
-        if (reader["Saida"] != DBNull.Value) status++;
+        string query = "SELECT Entrada, InicioIntervalo, FimIntervalo, Saida FROM RegistrosPonto WHERE FuncionarioId = @ID AND DataRegistro = @DataRegistro";
+        SqlCommand command = new SqlCommand(query, connection);
+        command.Parameters.AddWithValue("@ID", colaboradorId);
+        command.Parameters.AddWithValue("@DataRegistro", dataRegistro);
+
+        SqlDataReader reader = command.ExecuteReader();
+        int status = 0;
+
+        if (reader.Read())
+        {
+            if (reader["Entrada"] != DBNull.Value) status++;
+            if (reader["InicioIntervalo"] != DBNull.Value) status++;
+            if (reader["FimIntervalo"] != DBNull.Value) status++;
+            if (reader["Saida"] != DBNull.Value) status++;
+        }
+
+        reader.Close();
+        return status;
     }
 
-    reader.Close();
-    return status;
-}
+    static string FormatarHora(object valor) =>
+    valor == DBNull.Value ? "-" : ((TimeSpan)valor).ToString(@"hh\:mm");
 
     public static void Main(string[] args)
     {
@@ -90,14 +93,13 @@ public class Program
 
             string email = "";
             string opc = "";
-            
+            Console.WriteLine("Login, Insira seu email:");
+            email = Console.ReadLine();
+            Console.WriteLine("Insira sua senha:");
+            string senha = Console.ReadLine();
 
             while (true)
             {
-                Console.WriteLine("Login, Insira seu email:");
-                email = Console.ReadLine();
-                Console.WriteLine("Insira sua senha:");
-                string senha = Console.ReadLine();
                 if (admins.Any(a => a.Email == email && a.Senha == senha))
                 {
                     Console.WriteLine("Bem-vindo, Admin!");
@@ -107,16 +109,16 @@ public class Program
                     var ColaboradorLogado = colaboradores.First(c => c.Email == email && c.Senha == senha);
                     Console.WriteLine("Bem-vindo, Colaborador! \n Opções: \n 1. Registrar ponto \n 2. Verificar pontos \n 3. Sair");
                     opc = Console.ReadLine();
-                    
+
 
                     switch (opc)
                     {
                         case "1":
                             DateTime hora_completa = DateTime.Now;
-                            DateTime hoje = DateTime.Today;
-                            TimeSpan hora = new TimeSpan(hora_completa.Hour, hora_completa.Minute, 0);
-                            int verificacao = ObterStatusAtualDoRegistro(connection, ColaboradorLogado.Id, hoje);
+                            DateTime hoje = hora_completa.Date;
+                            TimeSpan hora = hora_completa.TimeOfDay;
 
+                            int verificacao = ObterStatusAtualDoRegistro(connection, ColaboradorLogado.Id, hoje);
 
                             if (verificacao == 1) { Console.WriteLine("Entrada: Batido"); }
                             if (verificacao == 2) { Console.WriteLine("Inicio de Intervalo: Batido"); }
@@ -137,7 +139,7 @@ public class Program
                             }
                             else if (verificacao == 1)
                             {
-                                string comando = "UPDATE RegistrosPonto SET InicioIntervalo = @InicioIntervalo WHERE ID = @ID AND DataRegistro = @DataRegistro";
+                                string comando = "UPDATE RegistrosPonto SET InicioIntervalo = @InicioIntervalo WHERE FuncionarioId = @ID AND DataRegistro = @DataRegistro";
                                 SqlCommand command = new SqlCommand(comando, connection);
                                 command.Parameters.AddWithValue("@ID", ColaboradorLogado.Id);
                                 command.Parameters.AddWithValue("@InicioIntervalo", hora);
@@ -150,7 +152,7 @@ public class Program
                             }
                             else if (verificacao == 2)
                             {
-                                string comando = "UPDATE RegistrosPonto SET FimIntervalo = @FimIntervalo WHERE ID = @ID AND DataRegistro = @DataRegistro";
+                                string comando = "UPDATE RegistrosPonto SET FimIntervalo = @FimIntervalo WHERE FuncionarioId = @ID AND DataRegistro = @DataRegistro";
                                 SqlCommand command = new SqlCommand(comando, connection);
                                 command.Parameters.AddWithValue("@ID", ColaboradorLogado.Id);
                                 command.Parameters.AddWithValue("@FimIntervalo", hora);
@@ -163,7 +165,7 @@ public class Program
                             }
                             else if (verificacao == 3)
                             {
-                                string comando = "UPDATE RegistrosPonto SET Saida = @Saida WHERE ID = @ID AND DataRegistro = @DataRegistro";
+                                string comando = "UPDATE RegistrosPonto SET Saida = @Saida WHERE FuncionarioId = @ID AND DataRegistro = @DataRegistro";
                                 SqlCommand command = new SqlCommand(comando, connection);
                                 command.Parameters.AddWithValue("@ID", ColaboradorLogado.Id);
                                 command.Parameters.AddWithValue("@Saida", hora);
@@ -180,22 +182,36 @@ public class Program
                                 break;
                             }
                         case "2":
-                            string comando2 = "SELECT * FROM RegistrosPonto WHERE ID = @ID";
+                            string comando2 = "SELECT * FROM RegistrosPonto WHERE FuncionarioId = @ID";
                             SqlCommand command2 = new SqlCommand(comando2, connection);
                             command2.Parameters.AddWithValue("@ID", ColaboradorLogado.Id);
-                            SqlDataReader reader = command2.ExecuteReader();
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    Console.WriteLine($"Data: {reader["DataRegistro"]}, Entrada: {reader["Entrada"]}, Início Intervalo: {reader["InicioIntervalo"]}, Fim Intervalo: {reader["FimIntervalo"]}, Saída: {reader["Saida"]}");
 
+                            using (SqlDataReader reader = command2.ExecuteReader())
+                            {
+                                if (reader.HasRows)
+                                {
+                                    while (reader.Read())
+                                    {
+                                        DateTime dataRegistro = reader.GetDateTime(reader.GetOrdinal("DataRegistro"));
+
+                                        Console.WriteLine($"Data: {dataRegistro:dd/MM/yyyy}, Entrada: {FormatarHora(reader["Entrada"])}, Início Intervalo: {FormatarHora(reader["InicioIntervalo"])}, Fim Intervalo: {FormatarHora(reader["FimIntervalo"])}, Saída: {FormatarHora(reader["Saida"])}");
+
+
+
+                                    }
                                 }
+
                             }
+
                             break;
                         case "3":
                             Console.WriteLine("Saindo...");
+                            //encerrar programa
+                            return;
+                        default:
+                            Console.WriteLine("Opção inválida. Tente novamente.");
                             break;
+
 
 
 
