@@ -192,7 +192,8 @@ public class Program
                                 {
                                     while (reader.Read())
                                     {
-                                        DateTime dataRegistro = reader.GetDateTime(reader.GetOrdinal("DataRegistro"));
+                                        string DataFormatada = reader["DataRegistro"].ToString();
+                                        DateTime dataRegistro = DateTime.Parse(DataFormatada);
 
                                         Console.WriteLine($"Data: {dataRegistro:dd/MM/yyyy}, Entrada: {FormatarHora(reader["Entrada"])}, Início Intervalo: {FormatarHora(reader["InicioIntervalo"])}, Fim Intervalo: {FormatarHora(reader["FimIntervalo"])}, Saída: {FormatarHora(reader["Saida"])}");
 
