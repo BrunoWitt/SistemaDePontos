@@ -34,7 +34,6 @@ public class RegistroPonto
     public TimeSpan? Saida { get; set; }
 }
 
-
 class Admin : Colaborador
 {
     public Admin(int id, string nome, string email, string senha) : base(id, nome, email, senha)
@@ -42,10 +41,6 @@ class Admin : Colaborador
         Admin = true;
     }
 }
-
-
-
-
 
 public class Program
 {
@@ -78,6 +73,32 @@ public class Program
 
         reader.Close();
         return status;
+    }
+
+    public static void ValidarDiaSemana(SqlConnection connection, int horasTrabalhadas, int colaboradorId, DateTime dataRegistro)
+    {
+        if (dataRegistro.DayOfWeek == DayOfWeek.Friday)
+        {
+            int horasEsperadas = 480;
+            int diferenca = horasEsperadas - horasTrabalhadas;
+            string comando = "UPDATE RegistrosPonto SET HorasTrabalhadas = @diferenca WHERE FuncionarioId = @ID AND DataRegistro = @DataRegistro";
+            SqlCommand command = new SqlCommand(comando, connection);
+            command.Parameters.AddWithValue("@ID", colaboradorId);
+            command.Parameters.AddWithValue("@diferenca", diferenca);
+            command.Parameters.AddWithValue("@DataRegistro", dataRegistro);
+            command.ExecuteNonQuery();
+        }
+        else
+        {
+            int horasEsperadas = 540;
+            int diferenca = horasTrabalhadas - horasEsperadas;
+            string comando = "UPDATE RegistrosPonto SET HorasTrabalhadas = @diferenca WHERE FuncionarioId = @ID AND DataRegistro = @DataRegistro";
+            SqlCommand command = new SqlCommand(comando, connection);
+            command.Parameters.AddWithValue("@ID", colaboradorId);
+            command.Parameters.AddWithValue("@diferenca", diferenca);
+            command.Parameters.AddWithValue("@DataRegistro", dataRegistro);
+            command.ExecuteNonQuery();
+        }
     }
 
     static string FormatarHora(object valor) =>
@@ -174,8 +195,38 @@ public class Program
                                 Console.WriteLine("Saída registrada com sucesso!");
 
                                 verificacao++;
+
+                                //registrar horas trabalhadas
+                                string comandoHoras = "SELECT Entrada, InicioIntervalo, FimIntervalo, Saida FROM RegistrosPonto WHERE FuncionarioId = @ID AND DataRegistro = @DataRegistro";
+                                SqlCommand buscarHoras = new SqlCommand(comandoHoras, connection);
+                                buscarHoras.Parameters.AddWithValue("@ID", ColaboradorLogado.Id);
+                                buscarHoras.Parameters.AddWithValue("@DataRegistro", hoje);
+
+                                TimeSpan entrada = TimeSpan.Zero;
+                                TimeSpan inicioIntervalo = TimeSpan.Zero;
+                                TimeSpan fimIntervalo = TimeSpan.Zero;
+                                TimeSpan saida = TimeSpan.Zero;
+                                
+                                using (SqlDataReader readerHoras = buscarHoras.ExecuteReader())
+                                {
+                                    // Verifica se há registros
+                                    if (readerHoras.Read())
+                                    {
+                                        entrada = (TimeSpan)readerHoras["Entrada"];
+                                        inicioIntervalo = (TimeSpan)readerHoras["InicioIntervalo"];
+                                        fimIntervalo = (TimeSpan)readerHoras["FimIntervalo"];
+                                        saida = (TimeSpan)readerHoras["Saida"];
+
+                                    }
+
+                                }
+                                TimeSpan horasTrabalhadas = (saida - entrada) - (fimIntervalo - inicioIntervalo);
+                                int horasTrabalhadasEmMinutos = (int)horasTrabalhadas.TotalMinutes;
+
+                                ValidarDiaSemana(connection, horasTrabalhadasEmMinutos, ColaboradorLogado.Id, hoje);
+
                                 break;
-                            }
+                            }   
                             else
                             {
                                 Console.WriteLine("Todas as etapas já foram registradas para hoje.");
@@ -195,7 +246,7 @@ public class Program
                                         string DataFormatada = reader["DataRegistro"].ToString();
                                         DateTime dataRegistro = DateTime.Parse(DataFormatada);
 
-                                        Console.WriteLine($"Data: {dataRegistro:dd/MM/yyyy}, Entrada: {FormatarHora(reader["Entrada"])}, Início Intervalo: {FormatarHora(reader["InicioIntervalo"])}, Fim Intervalo: {FormatarHora(reader["FimIntervalo"])}, Saída: {FormatarHora(reader["Saida"])}");
+                                        Console.WriteLine($"Data: {dataRegistro:dd/MM/yyyy}, Entrada: {FormatarHora(reader["Entrada"])}, Início Intervalo: {FormatarHora(reader["InicioIntervalo"])}, Fim Intervalo: {FormatarHora(reader["FimIntervalo"])}, Saída: {FormatarHora(reader["Saida"])}, Saldo de horas: {reader["HorasTrabalhadas"] ?? "N/A"}");
 
 
 
@@ -212,10 +263,6 @@ public class Program
                         default:
                             Console.WriteLine("Opção inválida. Tente novamente.");
                             break;
-
-
-
-
                     }
                 }
                 else
@@ -224,11 +271,6 @@ public class Program
                 }
 
             }
-
-
-
-
-
         }
     }
 }

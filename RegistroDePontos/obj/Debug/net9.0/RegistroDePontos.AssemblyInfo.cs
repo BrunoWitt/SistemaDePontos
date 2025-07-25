@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RegistroDePontos")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d85049c98bf9533820af96d68f56be5669e33971")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ab064d315f5a09112e97cdd7f98c60867f315273")]
 [assembly: System.Reflection.AssemblyProductAttribute("RegistroDePontos")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RegistroDePontos")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
